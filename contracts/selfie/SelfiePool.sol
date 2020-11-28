@@ -27,9 +27,9 @@ contract SelfiePool is ReentrancyGuard {
     function flashLoan(uint256 borrowAmount) external nonReentrant {
         uint256 balanceBefore = token.balanceOf(address(this));
         require(balanceBefore >= borrowAmount, "Not enough tokens in pool");
-        
-        token.transfer(msg.sender, borrowAmount);        
-        
+
+        token.transfer(msg.sender, borrowAmount);
+
         require(msg.sender.isContract(), "Sender must be a deployed contract");
         (bool success,) = msg.sender.call(
             abi.encodeWithSignature(
@@ -39,7 +39,7 @@ contract SelfiePool is ReentrancyGuard {
             )
         );
         require(success, "External call failed");
-        
+
         uint256 balanceAfter = token.balanceOf(address(this));
 
         require(balanceAfter >= balanceBefore, "Flash loan hasn't been paid back");
@@ -48,7 +48,7 @@ contract SelfiePool is ReentrancyGuard {
     function drainAllFunds(address receiver) external onlyGovernance {
         uint256 amount = token.balanceOf(address(this));
         token.transfer(receiver, amount);
-        
+
         emit FundsDrained(receiver, amount);
     }
 }
